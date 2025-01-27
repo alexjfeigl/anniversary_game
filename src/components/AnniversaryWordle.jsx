@@ -138,8 +138,8 @@ const AnniversaryWordle = () => {
 
   return (
     <div className="flex flex-col items-center p-4 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Feigl Worldle</h1>
-      <h2 className="text-2xl font-bold mb-4">Words from all the places we've been.</h2>
+      <h1 className="text-2xl font-bold mb-4">Feigls around the Worldle</h1>
+      <div className="mb-4">Words from all the places we've been.</div>
       <div className="mb-4">Hint: {currentHint}</div>
       <div className="mb-4 text-sm">
         Solved {solvedWords.size} of {words.length} words
