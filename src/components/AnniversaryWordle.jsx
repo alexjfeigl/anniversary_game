@@ -84,34 +84,40 @@ const AnniversaryWordle = () => {
     }
   }, [currentWordIndex, words.length]);
 
+  const handleEnterPress = () => {
+    if (gameState !== 'playing') return;
+
+    if (currentGuess.length !== WORD_LENGTH) {
+      showNotification('Not enough letters');
+      return;
+    }
+
+    const evaluation = evaluateGuess(currentGuess.toUpperCase());
+    const newGuesses = [...guesses, { word: currentGuess.toUpperCase(), evaluation }];
+    setGuesses(newGuesses);
+    updateUsedLetters(currentGuess.toUpperCase(), evaluation);
+    setCurrentGuess('');
+
+    if (currentGuess.toUpperCase() === currentWord) {
+      const newSolvedWords = new Set(solvedWords);
+      newSolvedWords.add(currentWord);
+      setSolvedWords(newSolvedWords);
+      
+      if (newSolvedWords.size === words.length) {
+        setGameState('complete');
+      } else {
+        setTimeout(moveToNextWord, 1500);
+      }
+    } else if (newGuesses.length >= MAX_ATTEMPTS) {
+      setGameState('lost');
+    }
+  };
+
   const handleKeyPress = useCallback((event) => {
     if (gameState !== 'playing') return;
 
     if (event.key === 'Enter') {
-      if (currentGuess.length !== WORD_LENGTH) {
-        showNotification('Not enough letters');
-        return;
-      }
-
-      const evaluation = evaluateGuess(currentGuess.toUpperCase());
-      const newGuesses = [...guesses, { word: currentGuess.toUpperCase(), evaluation }];
-      setGuesses(newGuesses);
-      updateUsedLetters(currentGuess.toUpperCase(), evaluation);
-      setCurrentGuess('');
-
-      if (currentGuess.toUpperCase() === currentWord) {
-        const newSolvedWords = new Set(solvedWords);
-        newSolvedWords.add(currentWord);
-        setSolvedWords(newSolvedWords);
-        
-        if (newSolvedWords.size === words.length) {
-          setGameState('complete');
-        } else {
-          setTimeout(moveToNextWord, 1500);
-        }
-      } else if (newGuesses.length >= MAX_ATTEMPTS) {
-        setGameState('lost');
-      }
+      handleEnterPress();
     } else if (event.key === 'Backspace') {
       setCurrentGuess(prev => prev.slice(0, -1));
     } else if (/^[a-zA-Z]$/.test(event.key) && currentGuess.length < WORD_LENGTH) {
@@ -204,7 +210,7 @@ const AnniversaryWordle = () => {
       </div>
       <div className="grid grid-cols-9 gap-1 mb-4">
         <button
-          onClick={() => setCurrentGuess(prev => prev + ' ')}
+          onClick={handleEnterPress}
           className="w-8 h-8 text-sm font-bold rounded bg-gray-200 col-span-1"
         >
           ⏎
