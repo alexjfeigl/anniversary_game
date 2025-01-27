@@ -9,12 +9,16 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  server: {
+server: {
     port: process.env.PORT || 4173,
     host: true, // Needed for the Docker Container port mapping to work
     strictPort: true,
-    allowedHosts: ['anniversary-game-jxjc.onrender.com']
-  },
+    allowedHosts: [
+        'anniversary-game-jxjc.onrender.com',
+        'thefeigls.com',
+        'www.thefeigls.com'
+    ]
+},
   preview: {
     port: process.env.PORT || 4173,
     host: true, // Needed for the Docker Container port mapping to work
