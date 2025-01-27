@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { Alert } from "@/components/ui/alert";
+import React, { useState, useEffect, useCallback } from 'react';
 
 const WORD_LENGTH = 5;
 const MAX_ATTEMPTS = 6;
@@ -11,15 +10,14 @@ const WORDS = {
   'MARRY': 'New York'
 };
 
-// Dictionary of common 5-letter words (simplified for demo)
-const VALID_WORDS = new Set([...Object.keys(WORDS), 'ADIEU', 'AUDIO', 'RAISE', 'STARE', 'CRANE', /* add more valid words */]);
+const VALID_WORDS = new Set([...Object.keys(WORDS), 'ADIEU', 'AUDIO', 'RAISE', 'STARE', 'CRANE']);
 
 const AnniversaryWordle = () => {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [solvedWords, setSolvedWords] = useState(new Set());
   const [currentGuess, setCurrentGuess] = useState('');
   const [guesses, setGuesses] = useState([]);
-  const [gameState, setGameState] = useState('playing'); // 'playing', 'won', 'lost'
+  const [gameState, setGameState] = useState('playing');
   const [notification, setNotification] = useState('');
   const [usedLetters, setUsedLetters] = useState(new Map());
 
@@ -32,7 +30,6 @@ const AnniversaryWordle = () => {
     const wordArray = currentWord.split('');
     const guessArray = guess.split('');
     
-    // First pass: Check for correct letters in correct positions
     for (let i = 0; i < WORD_LENGTH; i++) {
       if (guessArray[i] === wordArray[i]) {
         result[i] = 'green';
@@ -41,7 +38,6 @@ const AnniversaryWordle = () => {
       }
     }
     
-    // Second pass: Check for correct letters in wrong positions
     for (let i = 0; i < WORD_LENGTH; i++) {
       if (guessArray[i] === null) continue;
       
@@ -78,7 +74,7 @@ const AnniversaryWordle = () => {
     setTimeout(() => setNotification(''), 2000);
   };
 
-  const moveToNextWord = () => {
+  const moveToNextWord = useCallback(() => {
     if (currentWordIndex < words.length - 1) {
       setCurrentWordIndex(prev => prev + 1);
       setGuesses([]);
@@ -86,19 +82,14 @@ const AnniversaryWordle = () => {
       setUsedLetters(new Map());
       setGameState('playing');
     }
-  };
+  }, [currentWordIndex, words.length]);
 
-  const handleKeyPress = (event) => {
+  const handleKeyPress = useCallback((event) => {
     if (gameState !== 'playing') return;
 
     if (event.key === 'Enter') {
       if (currentGuess.length !== WORD_LENGTH) {
         showNotification('Not enough letters');
-        return;
-      }
-
-      if (!VALID_WORDS.has(currentGuess.toUpperCase())) {
-        showNotification('Not in word list');
         return;
       }
 
@@ -126,26 +117,32 @@ const AnniversaryWordle = () => {
     } else if (/^[a-zA-Z]$/.test(event.key) && currentGuess.length < WORD_LENGTH) {
       setCurrentGuess(prev => prev + event.key.toUpperCase());
     }
-  };
+  }, [currentGuess, gameState, currentWord, guesses, solvedWords, moveToNextWord]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [currentGuess, gameState, currentWord]);
+  }, [handleKeyPress]);
+
+  const handleVirtualKeyPress = (letter) => {
+    if (gameState === 'playing' && currentGuess.length < WORD_LENGTH) {
+      setCurrentGuess(prev => prev + letter);
+    }
+  };
 
   return (
     <div className="flex flex-col items-center p-4 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Anniversary Wordle</h1>
+      <h1 className="text-2xl font-bold mb-4">Worldle</h1>
       <div className="mb-4">Hint: {currentHint}</div>
       <div className="mb-4 text-sm">
         Solved {solvedWords.size} of {words.length} words
       </div>
-      
+
       {notification && (
         <div className="mb-4">
-          <Alert variant="destructive" className="py-2 px-4">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
             {notification}
-          </Alert>
+          </div>
         </div>
       )}
       
@@ -179,11 +176,7 @@ const AnniversaryWordle = () => {
         {Array.from('QWERTYUIOP').map(letter => (
           <button
             key={letter}
-            onClick={() => {
-              if (gameState === 'playing' && currentGuess.length < WORD_LENGTH) {
-                setCurrentGuess(prev => prev + letter);
-              }
-            }}
+            onClick={() => handleVirtualKeyPress(letter)}
             className={`w-8 h-8 text-sm font-bold rounded
               ${usedLetters.get(letter) === 'green' ? 'bg-green-500 text-white' :
                 usedLetters.get(letter) === 'yellow' ? 'bg-yellow-500 text-white' :
@@ -198,11 +191,7 @@ const AnniversaryWordle = () => {
         {Array.from('ASDFGHJKL').map(letter => (
           <button
             key={letter}
-            onClick={() => {
-              if (gameState === 'playing' && currentGuess.length < WORD_LENGTH) {
-                setCurrentGuess(prev => prev + letter);
-              }
-            }}
+            onClick={() => handleVirtualKeyPress(letter)}
             className={`w-8 h-8 text-sm font-bold rounded
               ${usedLetters.get(letter) === 'green' ? 'bg-green-500 text-white' :
                 usedLetters.get(letter) === 'yellow' ? 'bg-yellow-500 text-white' :
@@ -213,15 +202,17 @@ const AnniversaryWordle = () => {
           </button>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-1 mb-4">
+      <div className="grid grid-cols-9 gap-1 mb-4">
+        <button
+          onClick={() => setCurrentGuess(prev => prev + ' ')}
+          className="w-8 h-8 text-sm font-bold rounded bg-gray-200 col-span-1"
+        >
+          ⏎
+        </button>
         {Array.from('ZXCVBNM').map(letter => (
           <button
             key={letter}
-            onClick={() => {
-              if (gameState === 'playing' && currentGuess.length < WORD_LENGTH) {
-                setCurrentGuess(prev => prev + letter);
-              }
-            }}
+            onClick={() => handleVirtualKeyPress(letter)}
             className={`w-8 h-8 text-sm font-bold rounded
               ${usedLetters.get(letter) === 'green' ? 'bg-green-500 text-white' :
                 usedLetters.get(letter) === 'yellow' ? 'bg-yellow-500 text-white' :
@@ -231,12 +222,18 @@ const AnniversaryWordle = () => {
             {letter}
           </button>
         ))}
+        <button
+          onClick={() => setCurrentGuess(prev => prev.slice(0, -1))}
+          className="w-8 h-8 text-sm font-bold rounded bg-gray-200 col-span-1"
+        >
+          ⌫
+        </button>
       </div>
 
       {gameState === 'complete' && (
         <div className="mt-4 text-center whitespace-pre-line">
-          Adventure Always.
-          I'm proud to call you my adventure buddy and look forward to all the adventures we will have together.
+          Adventure Always.<br/>
+          I'm proud to call you my adventure buddy and look forward to all the adventures we will have together.<br/>
           Happy 1 Year Anniversary, here's to a lifetime more.
         </div>
       )}
