@@ -13,11 +13,12 @@ export default defineConfig({
     port: process.env.PORT || 4173,
     host: true, // Needed for the Docker Container port mapping to work
     strictPort: true,
+    allowedHosts: ['anniversary-game-jxjc.onrender.com']
   },
   preview: {
     port: process.env.PORT || 4173,
     host: true, // Needed for the Docker Container port mapping to work
     strictPort: true,
+    allowedHosts: ['anniversary-game-jxjc.onrender.com']
   }
 })
-
