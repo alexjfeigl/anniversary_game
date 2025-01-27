@@ -9,4 +9,15 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    port: process.env.PORT || 4173,
+    host: true, // Needed for the Docker Container port mapping to work
+    strictPort: true,
+  },
+  preview: {
+    port: process.env.PORT || 4173,
+    host: true, // Needed for the Docker Container port mapping to work
+    strictPort: true,
+  }
 })
+
